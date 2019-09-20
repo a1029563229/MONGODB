@@ -234,6 +234,4 @@ db.numbers.help();
 
 // 查看实现源码
 db.numbers.save
-
-
 ```
