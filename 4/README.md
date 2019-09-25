@@ -73,3 +73,8 @@ db.system.indexes.find();
   - MongoDB 也允许在特定的时间后废弃文档数据，有时候叫做生存时间 time-to-live（TTL）集合，这个功能实际上是通过一个特殊的索引实现的。
 - 系统集合
   - MongoDB 的部分设计依赖于内部集合的使用。
+
+### 文档和插入
+- 所有的文档在发送给 MongoDB 之前都序列化为 BSON 格式，然后再从 BSON 反序列化。驱动库会处理底层的数据类型转换工作。
+- BSON 指定了三种数据类型：double、int、long。这意味着 BSON 可以编码任意 IEEE 浮点数以及任意 8B 长度的有符号整数。（Javascript 只支持一种数据类型叫做 Number，它等价于 IEEE 754 Double）
+- BSON 文档大小限制为 16 MB，嵌套深度最大值限制是 100.
