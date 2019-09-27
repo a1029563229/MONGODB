@@ -9,3 +9,4 @@
 - [面向文档的数据](https://github.com/a1029563229/MONGODB/tree/master/4)
 - [构建查询](https://github.com/a1029563229/MONGODB/tree/master/5)
 - [构建查询-补充](https://github.com/a1029563229/MONGODB/tree/master/5/5.x)
+- [聚合](https://github.com/a1029563229/MONGODB/tree/master/6)
