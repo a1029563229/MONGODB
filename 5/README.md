@@ -95,4 +95,82 @@ db.mall.find({ "category": { $in: ["a", "b"] } })
 // $ne 无法使用索引，所以最好结合一个其他索引运算符
 // 查找 Acme 制造的所有没有 gardening 标签的商品
 db.products.find({ "details.manufacturer": 'Acme', "tags": { $ne: "gardening" } })
+
+// 查找 age 不小于 30 的文档
+db.users.find({ "age": { $not: { $lte: 30 } } });
+
+// 如果可能值的范围是相同的关键字，则使用 $in 替代
+// 查找是蓝色或者由 Acme 生产的所有商品
+// $nor 的用法与 $or 类似
+db.users.find({ $or: [
+  { 'details.color': 'blue' },
+  { 'details.manufacturer': 'Acme' }
+] })
+
+// 查找标签是 gift 或 holiday 并且标签为 gardening 或 landscaping
+db.products.find({
+  $and: [
+    {
+      tags: { $in: ['gift', 'holiday'] }
+    },
+    {
+      tags: { $in: ['gardening', 'landscaping'] }
+    }
+  ]
+});
+
+// 查询存在颜色字段的文档
+db.products.find({ 'details.color': { $exists: true } });
 ```
+
+### 数组
+- 数组查询
+  - $elemMatch：如果提供的所有词语在相同的子文档中，则匹配；
+  - $size：如果子文档数组大小与提供的文本值相同则，则匹配；
+```js
+// 查询 name 为 home，state 为 NY 的子文档
+db.users.find({
+  'addresses': {
+    $elemMatch: {
+      name: 'home',
+      state: 'NY'
+    }
+  }
+})
+
+// 查找拥有三个地址的所有用户
+db.users.find({ 'address': { $size: 3 } });
+```
+
+### Javascript 查询运算符
+- $where 执行任意 Javascript 来选择文档
+```js
+db.reviews.find({ $where: 'this.helpful_votes > 3' });
+```
+
+Javascript 表达式不能使用索引，并且带来大量费用，因为它们必须在 Javascript 解释器的上下文中评估并且是单线程的。所以使用 Javascript 表达式时至少结合一个其他查询运算符，缩小查找的范围。
+
+- $regex：匹配元素对应提供给 regex（正则表达式）项。（无法使用索引）
+- $mod[(quotient), (result)]：如果元素除以除数符合结果则匹配；
+- $type：如果元素的类型符合指定的 BSON 类型则匹配；
+- $text：允许在建立文本索引的字段是执行文本搜索；
+
+## 查询选择
+
+### 映射
+- $slice：选择返回文档的子集
+```js
+// 规定查询选择（返回）的字段为 username
+db.users.find({}, { 'username': 1 });
+
+// 排除 addresses 字段和 payment_methods 字段
+db.users.find({}, { 'addresses': 0, 'payment_methods': 0 });
+
+// 对子集进行分页处理
+db.products.find({}, { 'reviews': { $slice: [0, 10] } });
+
+// 对子集进行分页处理并进行查询选择
+db.products.find({}, { 'reviews': { $slice: [0, 10] }, 'reviews.rating': 1 });
+```
+- sort：排序
+- skip + limit：分页（数据过多的分页应使用 $gt + date 字段的组合，因为 skip 在处理大数据时效率比较低下。
