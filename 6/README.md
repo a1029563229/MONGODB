@@ -13,3 +13,104 @@
   - $geoNear：根据某个地理位置附近的文档；
   - $out：把管道的结果写入某个集合；
   - $redact：控制特定数据的访问；
+
+## 电商聚合例子
+```js
+// 普通方法统计某个商品的评价数量
+product = db.products.findOne({ 'slug': 'wheelbarrow-9092' });
+reviews_count = db.reviews.count({ 'product_id': product['id'] });
+
+// 聚合框架统计所有商品的评论总数
+db.reviews.aggregate([
+  {
+    $group: {
+      _id: '$product_id',
+      count: { $sum: 1 }
+    }
+  }
+]);
+
+// 使用聚合框架统计某一商品的评论数量
+product = db.products.findOne({ 'slug': 'wheelbarrow-9092' });
+db.reviews.aggregate([
+  { $match: { product_id: product['_id'] } },
+  { $group: { _id: '$product_id', count: { $sum: 1 } } }
+]).next();
+
+// 计算商品评价的平均评分
+product = db.products.findOne({ 'slug': 'wheelbarrow-9092' });
+db.reviews.aggregate([
+  { $match: { product_id: product['_id'] } },
+  { $group: { 
+    _id: '$product_id', 
+    average: { $avg: '$rating' },
+    count: { $sum: 1 } 
+  } }
+]).next();
+
+// 细分评分，统计每种评分的数量
+product = db.products.findOne({ 'slug': 'wheelbarrow-9092' });
+countsByRating = db.reviews.aggregate([
+  { $match: { product_id: product['_id'] } },
+  { $group: { _id: '$rating', count: { $sum: 1 } } }
+]).toArray();
+
+// $unwind 将会为数组里的每个元素生成一个输出文档
+// 计算每个类别的商品数量
+db.products.aggregate([
+  { $project: { category_ids: 1 } },
+  { $unwind: '$category_ids' },
+  { $group: { _id: '$category_ids', count: { $sum: 1 } } },
+  { $out: 'countsByCategory' }
+]);
+```
+
+### 用户和订单
+```js
+// 根据用户分组统计每个用户的评价数量，以及有帮助的投票
+db.users.aggregate([
+  {
+    $group: {
+      _id: '$user_id',
+      count: { $sum: 1 },
+      avg_helpful: { $avg: '$helpful_votes' }
+    }
+  }
+]);
+
+// 2010 年根据月和年来统计的订单数据
+db.orders.aggregate([
+  { $match: { purchase_data: { $gte: new Date(2010, 0, 1) } } },
+  { $group: { 
+    _id: { year: { $year: '$purchase_data' }, month: { $month: '$purchase_data' } },
+    count: { $sum: 1 },
+    total: { $sum: '$sub_total' }
+   } },
+  { $sort: { id: -1 } }
+]);
+```
+
+- 找出曼哈顿消费最高的用户
+```js
+// $match 查找快递到曼哈顿的订单
+upperManhattanOrders = { 'shipping_address.zip': { $gte: 10019, $lt: 10040 } };
+
+// $group 为每个客户求和
+sumByUserId = { id: '$user_id', total: { $sum: '$sub_total' } };
+
+// $match 选择总额超过 100 美元的客户
+orderTotalLarge = { total: { $gt: 10000 } };
+
+// $sort 按降序排列结果
+sortTotalDesc = { total: -1 };
+
+// 组合查询
+db.orders.aggregate([
+  { $match: upperManhattanOrders },
+  { $group: sumByUserId },
+  { $match: orderTotalLarge },
+  { $sort: sortTotalDesc }
+]);
+```
+
+## 聚合管道操作符
