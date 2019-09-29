@@ -114,3 +114,62 @@ db.orders.aggregate([
 ```
 
 ## 聚合管道操作符
+- $project
+  - 查询映射
+
+```js
+// 映射对象
+db.users.aggregate([
+  { $match: { username: 'kbanker' } },
+  { $project: { first_name: 1, last_name: 1 } }
+]);
+
+
+
+```
+- $group
+- 主要用于聚合管道。次操作符可以处理多个文档的聚合数据，提供诸多统计功能。
+- $addToSet：为组里唯一的值创建一个数组；
+- $first：组里的第一个值，只有前缀 $sort 才有意义；
+- $last：组里最后一个值，只有前缀 $sort 才有意义；
+- $max：组里某个字段的最大值；
+- $min：组里某个字段的最小值；
+- $avg：某个字段的平均值；
+- $push：返回组内所有值的数组。不去除重复值；
+- $sum：求组内所有值的和；
+
+```js
+// push 的用法
+// $push 函数把对象添加到 purchasedItems 数组
+db.orders.aggregate([
+  { $project: { user_id: 1, line_items: 1 } },
+  { $unwind: '$line_items' },
+  { $group: { 
+    _id: { user_id: '$user_id' },
+    purchasedItems: { $push: '$line_items' }
+  } }
+]).toArray();
+```
+
+- $match、$sort、$skip、$limit
+```js
+db.reviews.aggregate([
+  { $match: { 'product_id': product['_id'] } },
+  { $skip: (page_number - 1) * 12 },
+  { $limit: 12 },
+  { $sort: { 'helpful_votes': 1 } }
+]).toArray();
+```
+
+- $unwind
+  - 这个操作符通过为数组里的每一个元素生成一个输出文档来扩展数组。主文档里的字段、每个数组元素的字段都被放入到输出文档里。
+```js
+db.products.aggregate([
+  { $project: { category_ids: 1 } },
+  { $unwind: '$category_ids' },
+  { $limit: 2 }
+]);
+```
+
+- $out
+  - 保存到指定集合中，通常是最后一个操作符。
