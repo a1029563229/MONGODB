@@ -173,3 +173,20 @@ db.products.aggregate([
 
 - $out
   - 保存到指定集合中，通常是最后一个操作符。
+
+## 重塑文档
+```js
+// 字段重命名
+db.users.aggregate([
+  { $match: { username: "kbanker" } },
+  { $project: { name: { first: "$first_name", last: "$last_name" } } }
+])
+```
+
+### 字符串函数
+- 用于操作字符串
+  - $concat：连接 2 个或者更多字符串为一个字符串；
+  - $strcasecmp：大小写敏感的比较，返回数字；
+  - $substr：获取字符串的子串；
+  - $toLower：转换为小写字符串；
+  - $toUpper：转换为大写字符串；
