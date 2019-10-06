@@ -190,3 +190,53 @@ db.users.aggregate([
   - $substr：获取字符串的子串；
   - $toLower：转换为小写字符串；
   - $toUpper：转换为大写字符串；
+
+```js
+db.users.aggregate([
+  { $match: { username: "kbanker" } },
+  { $project: { 
+    name: { $concat: ['$first_name', ' ', '$last_name'] },
+    firstInitial: { $substr: ['$first_name', 0, 1] },
+    usernameUpperCase: { $toUpper: '$username' }
+   } }
+])
+```
+
+### 算术运算函数
+- 用于操作数值
+  - $add：求和；
+  - $divide：除法；
+  - $mod：求余数；
+  - $multiply：乘积；
+  - $subtract：减法；
+
+### 日期函数
+- 用于操作日期：
+  - $dayOfYear：一年的某一天；
+  - $dayOfMonth：一月中的某一天；
+  - $dayOfWeek：一周中的某一天，1 表示周日；
+  - $year：日期的年份；
+  - $month：日期的月份，1~12；
+  - $week：一年中的某一周，0~53；
+  - ...
+
+### 逻辑函数
+- $and：与操作，如果数组里所有值都为 true，则返回 true；
+- $eq：两个值是否相等；
+- $ifNull：把 null 值/表达式转换为特定的值；
+
+### 集合操作符
+- $setEquals：如果两个集合的元素完全相同，则为 true；
+- ...
+
+## 理解聚合管道性能
+- 影响聚合管道性能的关键点
+  - 尽早在管道里尝试减少数量和大小；
+  - 索引只能用于 $match 和 $sort 操作，而且可以大大加快查询；
+  - 在管道使用 $match 和 $sort 之外的操作符后不能使用索引；
+  - 如果使用分片（分片存储大数据集合），则 $match 和 $project 会在单独的片上执行。一旦使用了其他操作符，其余的管道将会在主要片上执行。
+  - 索引可以大大加快大集合选择性查询和排序；
+- 聚合管道选项
+  - explain() —— 运行管道并且只返回管道处理详细信息；
+  - allowDiskUse —— 使用磁盘存储数据；
+  - cursor —— 指定初始批处理的大小；
