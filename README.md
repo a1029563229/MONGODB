@@ -10,3 +10,4 @@
 - [构建查询](https://github.com/a1029563229/MONGODB/tree/master/5)
 - [构建查询-补充](https://github.com/a1029563229/MONGODB/tree/master/5/5.x)
 - [聚合](https://github.com/a1029563229/MONGODB/tree/master/6)
+- [更新、原子操作和删除](https://github.com/a1029563229/MONGODB/tree/master/7)
