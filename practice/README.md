@@ -25,7 +25,7 @@ db.getCollection('activity.users')
         nickname: "$u.nickname",
         avatarUrl: "$u.avatarUrl"
       }
-    }
+    },
 ])
 
 
@@ -54,6 +54,12 @@ db.getCollection('activity.users')
     },
     {
       $match: { nickname: "有效用户" }
+    },
+    {
+      $group: {
+        _id:'$userId', 
+        count:{$sum:1}
+      }
     },
     {
       $skip: 0
