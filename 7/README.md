@@ -67,4 +67,34 @@ db.orders.update(
     }
   }
 )
+
+// 修改树的信息并且修改相应的关联项
+doc = db.categories.findOne({ _id: outdoors_id })
+doc.name = "The Great Outdoors"
+db.categories.update({_id: outdoors_id}, doc)
+db.categories.update(
+  { 'ancestors._id': outdoors_id },
+  { $set: { 'ancestors.$': doc } },
+  { multi: true } // 对所有匹配的文档进行更新
+)
+
+// 修改匹配条件的某一项
+db.users.update(
+  { _id: "xxx", "address.name": "work" },
+  { $set: { "address.$.street": "xxx" } }
+)
+
+// 统计不重复数据集合
+db.reviews.update(
+  { _id: "xxx", voter_ids: { $ne: "xxx" } },
+  { 
+    $push: { voter_ids: "xxx" },
+    $inc: { helpful_votes: 1 }
+  }
+)
+
+// 使用 upsert 更新文档
+db.orders.update(selector, update, { upsert: true })
 ```
+
+175
